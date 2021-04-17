@@ -27,65 +27,65 @@ const [status, setStatus] = useState<'initial' | 'error' | 'success'>('initial')
 const [message, setMessage] = useState('');
 const [form] = Form.useForm(); 
 
+const onFinish = async ({link} : FormValues) => {
+  try {
+    const response = await axios.post<ShortenLinkResponse>('/api/short_link', {link});
+    setStatus('success');
+    setMessage(response.data?.short_link);
+  }
+  catch(e) {
+    const error = e as AxiosError<ShortenLinkError>;
+    setMessage('error');
+    setMessage(error.response?.data?.error_description || 'Something went wrong!');
+  }
+}
+
+const onFinishedFailed = () => {
+  setStatus('error');
+  const error = form.getFieldError('link').join(' ');
+  setMessage(error);
+}
 
   return (
-    <div className={styles.container}>
+    <Layout>
       <Head>
-        <title>Create Next App</title>
+        <title>Link Shortener</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
-
-      <main className={styles.main}>
-        <h1 className={styles.title}>
-          Welcome to <a href="https://nextjs.org">Next.js!</a>
-        </h1>
-
-        <p className={styles.description}>
-          Get started by editing{' '}
-          <code className={styles.code}>pages/index.js</code>
-        </p>
-
-        <div className={styles.grid}>
-          <a href="https://nextjs.org/docs" className={styles.card}>
-            <h3>Documentation &rarr;</h3>
-            <p>Find in-depth information about Next.js features and API.</p>
-          </a>
-
-          <a href="https://nextjs.org/learn" className={styles.card}>
-            <h3>Learn &rarr;</h3>
-            <p>Learn about Next.js in an interactive course with quizzes!</p>
-          </a>
-
-          <a
-            href="https://github.com/vercel/next.js/tree/master/examples"
-            className={styles.card}
-          >
-            <h3>Examples &rarr;</h3>
-            <p>Discover and deploy boilerplate example Next.js projects.</p>
-          </a>
-
-          <a
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-          >
-            <h3>Deploy &rarr;</h3>
-            <p>
-              Instantly deploy your Next.js site to a public URL with Vercel.
-            </p>
-          </a>
+<Header>
+  <div className={styles.logo} />
+</Header>
+<Content className={styles.content}>
+  <div className={styles.shortener}>
+    <Title level={5}>Copy &amp; Paste your lenthy link</Title>
+    <Form
+      form={form}
+      onFinish={onFinish}
+      onFinishFailed={onFinishedFailed}
+      >
+        <div className={styles.linkField}>
+          <div className={styles.linkFieldInput}>
+            <Form.Item name='link' noStyle rules={[{
+              required: true,
+              message: 'Please paste a correct link',
+              type: 'url',
+            }]}>
+              <Input placeholder='https://my-super-long-link.com' size='large' />
+            </Form.Item>
+            </div>
+            <div className={styles.linkFieldButton}>
+              <Form.Item>
+            <Button type='primary' htmlType='submit' style={{width: '100%'}} size='large'>Shorten</Button>
+          </Form.Item>
+          </div>
         </div>
-      </main>
-
-      <footer className={styles.footer}>
-        <a
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Powered by{' '}
-          <img src="/vercel.svg" alt="Vercel Logo" className={styles.logo} />
-        </a>
-      </footer>
-    </div>
+      </Form>
+      {['error', 'success'].includes(status) && (<Alert showIcon message={message} type={status as 'error' | 'success'} />)}
+  </div>
+</Content>
+      <Footer className={styles.footer}>
+        Yet Another Link Shortener (YALS) &copy; 2021
+      </Footer>
+    </Layout>
   )
 }
